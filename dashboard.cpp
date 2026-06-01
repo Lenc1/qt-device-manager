@@ -2,6 +2,10 @@
 #include "ui_dashboard.h"
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 Dashboard::Dashboard(QWidget *parent)
     : QWidget(parent)
@@ -9,9 +13,11 @@ Dashboard::Dashboard(QWidget *parent)
 {
     ui->setupUi(this);
 
+    loadDevices();
+    refreshTable();
+
     setAttribute(Qt::WA_DeleteOnClose);
 
-    initTable();
 }
 
 Dashboard::~Dashboard()
@@ -28,45 +34,39 @@ void Dashboard::closeEvent(QCloseEvent *event)
     QWidget::closeEvent(event);
 }
 
-void Dashboard::initTable(){
-    ui->deviceTable->setRowCount(3);
-    ui->deviceTable->setItem(
-        0,0,
-        new QTableWidgetItem("1001")
-    );
-    ui->deviceTable->setItem(
-        0,1,
-        new QTableWidgetItem("传感器A")
-    );
-    ui->deviceTable->setItem(
-        0,2,
-        new QTableWidgetItem("在线")
-    );
-    ui->deviceTable->setItem(
-        1,0,
-        new QTableWidgetItem("1002")
-    );
-    ui->deviceTable->setItem(
-        1,1,
-        new QTableWidgetItem("摄像头B")
-    );
-    ui->deviceTable->setItem(
-        1,2,
-        new QTableWidgetItem("离线")
-    );
-    ui->deviceTable->setItem(
-        2,0,
-        new QTableWidgetItem("1003")
-    );
-    ui->deviceTable->setItem(
-        2,1,
-        new QTableWidgetItem("PLC-C")
-    );
-    ui->deviceTable->setItem(
-        2,2,
-        new QTableWidgetItem("在线")
-    );
+void Dashboard::refreshTable()
+{
+    ui->deviceTable->clearContents();
+
+    ui->deviceTable->setRowCount(devices.size());
+
+    for(int i = 0; i < devices.size(); i++)
+    {
+        ui->deviceTable->setItem(
+            i,
+            0,
+            new QTableWidgetItem(devices[i].id)
+        );
+
+        ui->deviceTable->setItem(
+            i,
+            1,
+            new QTableWidgetItem(devices[i].name)
+        );
+
+        ui->deviceTable->setItem(
+            i,
+            2,
+            new QTableWidgetItem(devices[i].status)
+        );
+        ui->deviceTable->setItem(
+            i,
+            3,
+            new QTableWidgetItem(devices[i].videoUrl)
+        );
+    }
 }
+
 void Dashboard::on_addButton_clicked()
 {
     bool ok;
@@ -91,30 +91,31 @@ void Dashboard::on_addButton_clicked()
         "",
         &ok
     );
+    QString videoUrl =QInputDialog::getText(
+        this,
+        "添加设备",
+        "请输入视频文件路径：",
+        QLineEdit::Normal,
+        "",
+        &ok
+    );
 
     if(!ok || name.isEmpty())
     {
         return;
     }
 
-    int row = ui->deviceTable->rowCount();
+    Device device;
 
-    ui->deviceTable->insertRow(row);
+    device.id = id;
+    device.name = name;
+    device.status = "在线";
+    device.videoUrl = videoUrl;
 
-    ui->deviceTable->setItem(
-        row, 0,
-        new QTableWidgetItem(id)
-    );
+    devices.push_back(device);
 
-    ui->deviceTable->setItem(
-        row, 1,
-        new QTableWidgetItem(name)
-    );
-
-    ui->deviceTable->setItem(
-        row, 2,
-        new QTableWidgetItem("在线")
-    );
+    refreshTable();
+    saveDevices();
 }
 
 
@@ -133,7 +134,76 @@ void Dashboard::on_deleteButton_clicked()
         return;
     }
 
-    ui->deviceTable->removeRow(row);
+    devices.removeAt(row);
+    saveDevices();
+
+    refreshTable();
+
+}
+void Dashboard::saveDevices()
+{
+    QJsonArray array;
+
+    for(const Device& device : devices)
+    {
+        QJsonObject obj;
+
+        obj["id"] = device.id;
+        obj["name"] = device.name;
+        obj["status"] = device.status;
+        obj["videoUrl"] = device.videoUrl;
+
+        array.append(obj);
+    }
+
+    QJsonDocument doc(array);
+
+    QFile file("devices.json");
+
+    if(file.open(QIODevice::WriteOnly)){
+
+        file.write(doc.toJson());
+
+        file.close();
+    }
+}
+void Dashboard::loadDevices()
+{
+    QFile file("devices.json");
+
+    if(!file.exists())
+    {
+        return;
+    }
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        return;
+    }
+
+    QByteArray data = file.readAll();
+
+    file.close();
+
+    QJsonDocument doc =
+        QJsonDocument::fromJson(data);
+    QJsonArray array = doc.array();
+
+    devices.clear();
+
+    for(auto value : array)
+    {
+        QJsonObject obj = value.toObject();
+
+        Device device;
+
+        device.id = obj["id"].toString();
+        device.name = obj["name"].toString();
+        device.status = obj["status"].toString();
+        device.videoUrl =obj["videoUrl"].toString();
+
+        devices.push_back(device);
+    }
+
 
 }
 

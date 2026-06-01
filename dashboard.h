@@ -7,6 +7,14 @@ namespace Ui {
 class Dashboard;
 }
 
+struct Device
+{
+    QString id;
+    QString name;
+    QString status;
+    QString videoUrl;
+};
+
 class Dashboard : public QWidget
 {
     Q_OBJECT
@@ -27,7 +35,16 @@ private slots:
     void on_deleteButton_clicked();
 
 private:
+    QVector<Device> devices;
+
+    void saveDevices();
+
+    void loadDevices();
+
+    void refreshTable();
+
     Ui::Dashboard *ui;
+
     void initTable();
 };
 
