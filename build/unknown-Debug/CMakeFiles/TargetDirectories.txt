@@ -1,9 +1,0 @@
-/Users/enenci/QtPractice/build/unknown-Debug/CMakeFiles/QtPractice.dir
-/Users/enenci/QtPractice/build/unknown-Debug/CMakeFiles/edit_cache.dir
-/Users/enenci/QtPractice/build/unknown-Debug/CMakeFiles/rebuild_cache.dir
-/Users/enenci/QtPractice/build/unknown-Debug/CMakeFiles/list_install_components.dir
-/Users/enenci/QtPractice/build/unknown-Debug/CMakeFiles/install.dir
-/Users/enenci/QtPractice/build/unknown-Debug/CMakeFiles/install/local.dir
-/Users/enenci/QtPractice/build/unknown-Debug/CMakeFiles/install/strip.dir
-/Users/enenci/QtPractice/build/unknown-Debug/CMakeFiles/QtPractice_autogen_timestamp_deps.dir
-/Users/enenci/QtPractice/build/unknown-Debug/CMakeFiles/QtPractice_autogen.dir
